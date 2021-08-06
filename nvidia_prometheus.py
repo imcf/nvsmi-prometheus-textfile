@@ -119,12 +119,15 @@ class NvMetric(object):
         value = self.value
         if self.convert:
             value = self.convert(value)
-        name = self.prometheus_name + self.name_suffix
+        name = "nvsmi_" + self.prometheus_name + self.name_suffix
         if self.value_type == "str":
             labels += ', %s="%s"' % (self.name, value)
             value = 1
             name += "_info"
-        return "nvsmi_%s{%s} %s" % (name, labels, value)
+        formatted = "# HELP %s %s\n" % (name, self.description)
+        formatted += "# TYPE %s gauge\n" % name
+        formatted += "%s{%s} %s" % (name, labels, value)
+        return formatted
 
     def disable(self):
         """Set this metric's status to 'disabled'."""
