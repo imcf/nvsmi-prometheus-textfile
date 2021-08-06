@@ -151,8 +151,8 @@ for csv_line in reader:
     if not csv_line:
         continue
 
-    for i, value in enumerate(csv_line):
-        metrics[i].value = value
+    for i, val in enumerate(csv_line):
+        metrics[i].value = val
 
     # for metric in metrics:
     #     print("%s: %s" % (metric.name, metric.value))
