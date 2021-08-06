@@ -156,13 +156,21 @@ metrics = [
     NvMetric("pci.bus", "PCI bus number", "hex"),
     NvMetric("pci.device", "PCI device number", "hex"),
     NvMetric("pci.device_id", "PCI vendor device id", "hex"),
-    NvMetric("pcie.link.gen.current", "current PCI-E link generation", "int"),
+    NvMetric(
+        "pcie.link.gen.current",
+        "current PCI-E link generation in use with this GPU and system",
+        "int",
+    ),
     NvMetric(
         "pcie.link.gen.max",
         "maximum PCI-E link generation possible with this GPU and system",
         "int",
     ),
-    NvMetric("pcie.link.width.current", "current PCI-E link width", "int"),
+    NvMetric(
+        "pcie.link.width.current",
+        "current PCI-E link width in use with this GPU and system",
+        "int",
+    ),
     NvMetric(
         "pcie.link.width.max",
         "maximum PCI-E link width possible with this GPU and system configuration",
