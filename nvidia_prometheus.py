@@ -98,7 +98,7 @@ metrics = [
     NvMetric("pci.domain", "PCI domain number", "hex"),
     NvMetric("pci.bus", "PCI bus number", "hex"),
     NvMetric("pci.device", "PCI device number", "hex"),
-    NvMetric("pci.device_id", "PCI vendo device id", "hex"),
+    NvMetric("pci.device_id", "PCI vendor device id", "hex"),
     NvMetric("pcie.link.gen.current", "current PCI-E link generation", "int"),
     NvMetric(
         "pcie.link.gen.max",
