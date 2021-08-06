@@ -28,6 +28,12 @@ class NvMetric(object):
             self.value_type = "int"
             self.convert = self.convert_mb
             self.name_suffix = "_bytes"
+        elif value_type == "degc":
+            self.value_type = "int"
+            self.name_suffix = "_celsius"
+        elif value_type == "watt":
+            self.value_type = "float"
+            self.name_suffix = "_watts"
         self.enabled = True
         self._value = None
 
@@ -139,10 +145,10 @@ metrics = [
     NvMetric("memory.total", "total installed GPU RAM", "mb"),
     NvMetric("memory.free", "total free GPU RAM", "mb"),
     NvMetric("memory.used", "total GPU RAM used by active contexts", "mb"),
-    NvMetric("temperature.gpu", "core GPU temperature in degrees C", "int"),
-    NvMetric("fan.speed", "intended (NOT MEASURED!) fan speed in percent", "int"),
-    NvMetric("power.draw", "power draw for the entire board in Watts", "float"),
-    NvMetric("power.limit", "software power limit in Watts", "float"),
+    NvMetric("temperature.gpu", "core GPU temperature in degrees C", "degc"),
+    NvMetric("fan.speed", "intended (NOT MEASURED!) fan speed in percent", "pct"),
+    NvMetric("power.draw", "power draw for the entire board in Watts", "watt"),
+    NvMetric("power.limit", "software power limit in Watts", "watt"),
     NvMetric("pci.domain", "PCI domain number", "hex"),
     NvMetric("pci.bus", "PCI bus number", "hex"),
     NvMetric("pci.device", "PCI device number", "hex"),
