@@ -1,9 +1,14 @@
 #!/usr/bin/env python
 
-"""Simple metrics collection via `nvidia-smi` generating a Prometheus textfile."""
+"""Simple metrics collection via `nvidia-smi` in Prometheus textfile format."""
+
+# pylint: disable-msg=invalid-name
+
+from __future__ import print_function
 
 import subprocess
 import csv
+
 # from StringIO import StringIO
 
 
@@ -25,15 +30,20 @@ class NvMetric(object):
 
     @value.setter
     def value(self, new_value):
-        """Set the value associated with this metric.
+        """Set the value associated with this metric, stripping surrounding whitespace.
 
         Parameters
         ----------
         new_value
             The value to be stored in this metric.
         """
-        self._value = new_value
+        # print("%s -> <%s>" % (self, new_value))
+        self._value = new_value.strip()
+        if self.value_type == "str":
+            return
+        self._value = self._value.split(" ")[0]
 
+    @property
     def prometheus_name(self):
         """Return the name in a Prometheus compatible format.
 
@@ -44,40 +54,39 @@ class NvMetric(object):
         """
         return self.name.replace(".", "_")
 
+    def format_prometheus(self, labels):
+        """Format the metric in Prometheus style, adding labels as provided.
+
+        Parameters
+        ----------
+        labels : str
+            A string that should be added as labels.
+
+        Returns
+        -------
+        str
+            The metric formatted for Prometheus.
+        """
+        if not self.enabled:
+            return None
+        name = self.prometheus_name
+        if self.value_type == "str":
+            name += "_info"
+        return "nvsmi_%s{%s} %s" % (name, labels, self.value)
+
     def disable(self):
         """Set this metric's status to 'disabled'."""
         self.enabled = False
 
+    def __str__(self):
+        return '%s="%s"' % (self.prometheus_name, self.value)
+
 
 # the list of properties to query for using "nvidia-smi":
-properties = [
-    "driver_version",
-    "gpu_serial",  # matches the serial number physically printed on each board
-    "gpu_uuid",
-    "gpu_name",
-    "utilization.gpu",
-    "utilization.memory",
-    "memory.total",
-    "memory.free",
-    "memory.used",
-    "temperature.gpu",
-    "fan.speed",
-    "power.draw",
-    "power.limit",
-    "pci.domain",
-    "pci.bus",
-    "pci.device",
-    "pci.device_id",
-    "pcie.link.gen.current",
-    "pcie.link.gen.max",
-    "pcie.link.width.current",
-    "pcie.link.width.max",
-]
-
 metrics = [
     NvMetric("driver_version", "NVIDIA display driver version", "str"),
     NvMetric("gpu_serial", "the serial number physically printed on the board", "str"),
-    NvMetric("gpu_uuid", "globally unique immutable alphanumeric identifier", "str"),
+    # NvMetric("gpu_uuid", "globally unique immutable alphanumeric identifier", "str"),
     NvMetric("gpu_name", "official product name of the GPU", "str"),
     NvMetric("utilization.gpu", "percent of time the GPU was busy", "int"),
     NvMetric("utilization.memory", "percent of time GPU RAM was read / written", "int"),
@@ -96,87 +105,67 @@ metrics = [
     NvMetric(
         "pcie.link.gen.max",
         "maximum PCI-E link generation possible with this GPU and system",
-        "int"
+        "int",
     ),
     NvMetric("pcie.link.width.current", "current PCI-E link width", "int"),
     NvMetric(
         "pcie.link.width.max",
         "maximum PCI-E link width possible with this GPU and system configuration",
-        "int"
+        "int",
     ),
 ]
 
-metrics_dict = dict()
+# a list of PROPERTIES that should be used as labels for all Prometheus metrics:
+use_as_label = [
+    "gpu_serial",
+    "gpu_name",
+    "pci.domain",
+    "pci.bus",
+    "pci.device",
+    "pci.device_id",
+]
+
+# create a dict with our metric objects so they are quickly accessible by their name:
+metrics_by_name = dict()
 for metric in metrics:
-    metrics_dict[metric.name] = metric
+    metrics_by_name[metric.name] = metric
 
-
-# build a second list compatible with Prometheus names (replacing dots by underscores)
-prometheus_names = [ x.replace(".", "_") for x in properties]
+# create a list with the existing metric names:
+metrics_names = [x.name for x in metrics]
 
 smi_cmd = [
     "nvidia-smi",
-    "--query-gpu=%s" % ",".join(properties),
+    "--query-gpu=%s" % ",".join(metrics_names),
     "--format=csv",
 ]
-# print smi_cmd
+# print(smi_cmd)
 
 proc = subprocess.Popen(smi_cmd, stdout=subprocess.PIPE)
-out = proc.communicate()[0].split("\n")
-# print out
+stdout = proc.communicate()[0].split("\n")
+# print(stdout)
 
-header = out.pop(0)  # remove the header but remember it (might be useful at some point)
-# print header
+header = stdout.pop(0)  # remove header but remember it (might be useful at some point)
+# print(header)
 
-reader = csv.reader(out, delimiter=',')
+reader = csv.reader(stdout, delimiter=",")
 for csv_line in reader:
     # skip the line if its length is zero:
     if not csv_line:
         continue
 
-    gpu_metrics = dict()
-    # print "\t".join(csv_line)
     for i, value in enumerate(csv_line):
-        key = prometheus_names[i]
-        # strip surrounding white spaces from the value:
-        value = value.strip()
-        # some values (e.g. the name) contain spaces, they should be kept as-is:
-        if key in ["gpu_name", "driver_version"]:
-            gpu_metrics[key] = value
-            continue
-        # all other values have their unit as a suffix which has to be stripped:
-        gpu_metrics[key] = value.split(" ")[0]
+        metrics[i].value = value
 
-    driver = gpu_metrics.pop("driver_version")
-    serial = gpu_metrics.pop("gpu_serial")
-    uuid = gpu_metrics.pop("gpu_uuid")
-    name = gpu_metrics.pop("gpu_name")
-    domain = gpu_metrics.pop("pci_domain")
-    bus = gpu_metrics.pop("pci_bus")
-    device = gpu_metrics.pop("pci_device")
-    device_id = gpu_metrics.pop("pci_device_id")
-    for key in gpu_metrics:
-        print (
-            (
-                'nvsmi_%s{'
-                    'driver="%s", '
-                    'serial="%s", '
-                    # 'uuid="%s", '
-                    'name="%s", '
-                    'pci_domain="%s", '
-                    'pci_bus="%s", '
-                    'pci_device="%s"'
-                '} %s'
-            )
-            % (
-                key,
-                driver,
-                serial,
-                # uuid,
-                name,
-                domain,
-                bus,
-                device,
-                gpu_metrics[key]
-            )
-        )
+    # for metric in metrics:
+    #     print("%s: %s" % (metric.name, metric.value))
+
+
+# create a list of Prometheus-style label names from the NVIDIA SMI property names:
+label_list = ["%s" % metrics_by_name[name] for name in use_as_label]
+label_string = ", ".join(label_list)
+# print(label_string)
+
+for metric in metrics:
+    if metric.name in use_as_label:
+        continue
+    print(metric.format_prometheus(label_string))
