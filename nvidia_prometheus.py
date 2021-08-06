@@ -16,8 +16,18 @@ class NvMetric(object):
 
     def __init__(self, metric_name, description, value_type):
         self.name = metric_name
+        self.name_suffix = ""
         self.description = description
+        self.convert = None
         self.value_type = value_type
+        if value_type == "pct":
+            self.value_type = "int"
+            self.convert = self.convert_percent
+            self.name_suffix = "_ratio"
+        elif value_type == "mb":
+            self.value_type = "int"
+            self.convert = self.convert_mb
+            self.name_suffix = "_bytes"
         self.enabled = True
         self._value = None
 
@@ -52,6 +62,39 @@ class NvMetric(object):
         """
         return self.name.replace(".", "_")
 
+    @staticmethod
+    def convert_mb(value):
+        """Transform a value given in megabytes into bytes (SI).
+
+        Parameters
+        ----------
+        value : int
+            The value in megabytes.
+
+        Returns
+        -------
+        int
+            The value multiplied by 1024
+        """
+        return int(value) * 1024
+
+    @staticmethod
+    def convert_percent(value):
+        """Transform a percentage value from 0-100 into a decimal ratio (0-1).
+
+        Parameters
+        ----------
+        value : int
+            The percentage value as an integer.
+
+        Returns
+        -------
+        float
+            The value converted to the 0-1 range.
+        """
+        ratio = float(value) / 100.0
+        return ratio
+
     def format_prometheus(self, labels):
         """Format the metric in Prometheus style, adding labels as provided.
 
@@ -67,10 +110,15 @@ class NvMetric(object):
         """
         if not self.enabled:
             return None
-        name = self.prometheus_name
+        value = self.value
+        if self.convert:
+            value = self.convert(value)
+        name = self.prometheus_name + self.name_suffix
         if self.value_type == "str":
+            labels += ', %s="%s"' % (self.name, value)
+            value = 1
             name += "_info"
-        return "nvsmi_%s{%s} %s" % (name, labels, self.value)
+        return "nvsmi_%s{%s} %s" % (name, labels, value)
 
     def disable(self):
         """Set this metric's status to 'disabled'."""
