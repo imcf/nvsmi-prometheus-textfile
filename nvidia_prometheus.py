@@ -9,8 +9,6 @@ from __future__ import print_function
 import subprocess
 import csv
 
-# from StringIO import StringIO
-
 
 class NvMetric(object):
 
