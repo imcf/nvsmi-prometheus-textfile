@@ -240,4 +240,7 @@ label_string = ", ".join(label_list)
 for metric in metrics:
     if metric.name in use_as_label:
         continue
-    print(metric.format_prometheus(label_string))
+
+    promethified = metric.format_prometheus(label_string)
+    if promethified:
+        print(promethified)
