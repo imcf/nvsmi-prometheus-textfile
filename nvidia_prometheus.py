@@ -55,6 +55,9 @@ class NvMetric(object):
         """
         # print("%s -> <%s>" % (self, new_value))
         self._value = new_value.strip()
+        if self.value == "[Not Supported]":
+            self.disable()
+            return
         if self.value_type == "str":
             return
         self._value = self._value.split(" ")[0]
