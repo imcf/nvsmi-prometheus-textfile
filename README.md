@@ -18,6 +18,41 @@ on the relevant systems:
 * Python 2.7 - comes with the base OS installation
 * `nvidia-smi` - available as soon as the NVIDIA driver package is installed
 
+## Permissions
+
+No *root permissions* are required to collect the metrics through `nvidia-smi`, instead
+having a user that is having write permissions to the textfile collector directory (or
+actually just a single file therein, to be precise) of `node_exporter` is sufficient.
+
+One simple solution is to run the script under the same account that is also used for
+the `node_exporter`. A possible setup could look like this:
+
+```bash
+adduser \
+    --home-dir /var/lib/node_exporter \
+    --comment "Prometheus Node Exporter daemon" \
+    --system \
+    node_exporter
+
+mkdir -pv /var/lib/node_exporter/textfile_collector
+chown -R node_exporter:node_exporter /var/lib/node_exporter
+```
+
+## Running
+
+Assuming you have cloned this repo to `/opt/nvsmi-prometheus-textfile/` and followed the
+strategy for the user account outlined above, you could run the script to collect
+metrics e.g. once a minute like so:
+
+```bash
+su - node_exporter
+OUTFILE="/var/lib/node_exporter/textfile_collector/nvsmi.prom"
+while true ; do
+    /opt/nvsmi-prometheus-textfile/nvidia_prometheus.py > $OUTFILE
+    sleep 60
+done
+```
+
 ## Seriously, Python 2.7? In 2021??
 
 Well, that's what is available on the Citrix Hypervisor default installation that we're
