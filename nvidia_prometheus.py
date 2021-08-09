@@ -39,7 +39,9 @@ class NvMetric(object):
 
     @property
     def value(self):
-        """Get the value associated with this metric."""
+        """Get the value associated with this metric, or `None` if it's disabled."""
+        if not self.enabled:
+            return None
         return self._value
 
     @value.setter
