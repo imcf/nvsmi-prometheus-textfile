@@ -123,7 +123,8 @@ class NvMetric(object):
             try:
                 value = self.convert(value)
             except ValueError:
-                value = "null"
+                return
+
         name = "nvsmi_" + self.prometheus_name + self.name_suffix
         if self.value_type == "str":
             labels += ', %s="%s"' % (self.name, value)
