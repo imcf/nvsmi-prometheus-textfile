@@ -9,9 +9,8 @@ them in a [Prometheus][2] compatible style that can be used through the
 
 The tool is intended to work on minimalistic installations, e.g. we are using it on our
 [Xen][4] / [Citrix Hypervisor][5] instances. Those setups come with very basic installs
-(currently based on [CentOS][6]) and there is a certain intrinsic risk of messing things
-up by installing additional stuff like e.g. `pip` (which would be required for the
-Python Client).
+(currently based on [CentOS][6]) and the installation of additional tools like `pip`
+(which would be required for the Python Client) is not always possible / desirable.
 
 Therefore the only *actual* dependencies of this collector are already always fulfilled
 on the relevant systems:
