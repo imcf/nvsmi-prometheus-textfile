@@ -152,6 +152,7 @@ metrics = [
     NvMetric("gpu_serial", "the serial number physically printed on the board", "str"),
     # NvMetric("gpu_uuid", "globally unique immutable alphanumeric identifier", "str"),
     NvMetric("gpu_name", "official product name of the GPU", "str"),
+    NvMetric("index", "zero-based index of the GPU, can change at each boot", "int"),
     NvMetric("utilization.gpu", "percent of time the GPU was busy", "pct"),
     NvMetric("utilization.memory", "percent of time GPU RAM was read / written", "pct"),
     NvMetric("memory.total", "total installed GPU RAM", "mb"),
@@ -191,6 +192,7 @@ metrics = [
 use_as_label = [
     "gpu_serial",
     "gpu_name",
+    "index",
     "pci.domain",
     "pci.bus",
     "pci.device",
