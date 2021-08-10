@@ -128,11 +128,16 @@ class NvMetric(object):
         """
         if not self.enabled:
             return ""
-        value = self.value
+
         if self.convert:
             try:
-                value = self.convert(value)
+                value = self.convert(self.value)
             except ValueError:
+                # in case conversion fails with a `ValueError` we silently skip the
+                # entire metric for the output:
+                return ""
+            except Exception as err:  # pylint: disable-msg=broad-except
+                LOG.error("Error converting value '%s': %s", self.value, err)
                 return ""
 
         name = "nvsmi_" + self.prometheus_name + self.name_suffix
