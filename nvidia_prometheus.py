@@ -9,6 +9,12 @@ from __future__ import print_function
 import subprocess
 import csv
 import copy
+import logging
+
+LOG = logging.getLogger()
+LOG.addHandler(logging.StreamHandler())
+LOG.setLevel(logging.WARNING)
+# LOG.setLevel(logging.DEBUG)
 
 
 class NvMetric(object):
@@ -54,7 +60,7 @@ class NvMetric(object):
         new_value
             The value to be stored in this metric.
         """
-        # print("%s -> <%s>" % (self, new_value))
+        LOG.debug("%s -> <%s>", self, new_value)
         self._value = new_value.strip()
         if self.value == "[Not Supported]":
             self.disable()
@@ -137,10 +143,12 @@ class NvMetric(object):
         formatted = "# HELP %s %s\n" % (name, self.description)
         formatted += "# TYPE %s gauge\n" % name
         formatted += "%s{%s} %s" % (name, labels, value)
+        LOG.debug("formatted metric:\n----\n%s\n----\n", formatted)
         return formatted
 
     def disable(self):
         """Set this metric's status to 'disabled'."""
+        LOG.info("Disabling metric '%s'...", self.name)
         self.enabled = False
 
     def __str__(self):
@@ -155,6 +163,9 @@ def process_gpu_metrics(values_from_csv):
     values_from_csv : list(str)
         A single line of the parsed CSV, obtained e.g. by a `csv.reader()` call.
     """
+    LOG.info("*** processing GPU metrics ***")
+    LOG.debug("values_from_csv: %s", values_from_csv)
+
     # first we create a deep-copy of the metrics objects to be absolutely sure we don't
     # have any leftovers from previous calls:
     metrics = copy.deepcopy(METRICS)
@@ -171,6 +182,9 @@ def process_gpu_metrics(values_from_csv):
     # create a list of Prometheus-style label names from the NVIDIA SMI property names:
     label_list = ["%s" % metrics_by_name[name] for name in USE_AS_LABEL]
     label_string = ", ".join(label_list)
+    LOG.debug("label_string: %s", label_string)
+
+    LOG.info("processed %s metrics, assembling Prometheus output...", len(metrics))
     output = list()
     for metric in metrics:
         if metric.name in USE_AS_LABEL:
@@ -179,6 +193,7 @@ def process_gpu_metrics(values_from_csv):
         promethified = metric.format_prometheus(label_string)
         output.append(promethified)
     if output:
+        LOG.debug("%s\n", "".join(output))
         print("".join(output))
 
 
@@ -244,14 +259,14 @@ smi_cmd = [
     "--query-gpu=%s" % ",".join(metrics_names),
     "--format=csv",
 ]
-# print(smi_cmd)
+LOG.info("call to `nvidia-smi`: <%s>", " ".join(smi_cmd))
 
 proc = subprocess.Popen(smi_cmd, stdout=subprocess.PIPE)
 stdout = proc.communicate()[0].split("\n")
-# print(stdout)
+LOG.debug("result from `nvidia-smi`:\n----\n%s\n----\n", stdout)
 
 header = stdout.pop(0)  # remove header but remember it (might be useful at some point)
-# print(header)
+LOG.debug("header line:\n----\n%s\n----\n", header)
 
 reader = csv.reader(stdout, delimiter=",")
 for csv_line in reader:
