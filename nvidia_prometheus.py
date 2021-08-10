@@ -121,13 +121,13 @@ class NvMetric(object):
             The metric formatted for Prometheus.
         """
         if not self.enabled:
-            return None
+            return ""
         value = self.value
         if self.convert:
             try:
                 value = self.convert(value)
             except ValueError:
-                return
+                return ""
 
         name = "nvsmi_" + self.prometheus_name + self.name_suffix
         if self.value_type == "str":
