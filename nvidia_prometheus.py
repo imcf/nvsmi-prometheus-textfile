@@ -171,13 +171,15 @@ def process_gpu_metrics(values_from_csv):
     # create a list of Prometheus-style label names from the NVIDIA SMI property names:
     label_list = ["%s" % metrics_by_name[name] for name in USE_AS_LABEL]
     label_string = ", ".join(label_list)
+    output = list()
     for metric in metrics:
         if metric.name in USE_AS_LABEL:
             continue
 
         promethified = metric.format_prometheus(label_string)
-        if promethified:
-            print(promethified)
+        output.append(promethified)
+    if output:
+        print("".join(output))
 
 
 # the list of properties to query for using "nvidia-smi":
