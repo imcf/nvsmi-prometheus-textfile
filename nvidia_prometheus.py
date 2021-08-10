@@ -25,15 +25,15 @@ class NvMetric(object):
         self.name = metric_name
         self.name_suffix = ""
         self.description = description
-        self.convert = None
+        self._convert = None
         self.value_type = value_type
         if value_type == "pct":
             self.value_type = "int"
-            self.convert = self.convert_percent
+            self._convert = self.convert_percent
             self.name_suffix = "_ratio"
         elif value_type == "mb":
             self.value_type = "int"
-            self.convert = self.convert_mb
+            self._convert = self.convert_mb
             self.name_suffix = "_bytes"
         elif value_type == "degc":
             self.value_type = "int"
@@ -138,9 +138,9 @@ class NvMetric(object):
         if not self.enabled:
             return ""
 
-        if self.convert:
+        if self._convert:
             try:
-                value = self.convert(self.value)
+                value = self._convert(self.value)
             except ValueError:
                 # in case conversion fails with a `ValueError` we silently skip the
                 # entire metric for the output:
