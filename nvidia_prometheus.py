@@ -197,9 +197,9 @@ def process_gpu_metrics(values_from_csv):
 
         promethified = metric.format_prometheus(label_string)
         output.append(promethified)
-    if output:
-        LOG.debug("%s\n", "".join(output))
-        print("".join(output))
+
+    LOG.debug("%s\n", "".join(output))
+    print("".join(output))
 
 
 # the list of properties to query for using "nvidia-smi":
