@@ -29,12 +29,12 @@ class NvMetric(object):
         self.value_type = value_type
         if value_type == "pct":
             self.value_type = "int"
-            self._convert = self.convert_percent
             self.name_suffix = "_ratio"
+            self._convert = self.convert_percent
         elif value_type == "mb":
             self.value_type = "int"
-            self._convert = self.convert_mb
             self.name_suffix = "_bytes"
+            self._convert = self.convert_mb
         elif value_type == "degc":
             self.value_type = "int"
             self.name_suffix = "_celsius"
