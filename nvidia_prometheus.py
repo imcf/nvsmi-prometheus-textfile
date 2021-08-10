@@ -159,7 +159,7 @@ class NvMetric(object):
             name += "_info"
         formatted = "# HELP %s %s\n" % (name, self.description)
         formatted += "# TYPE %s gauge\n" % name
-        formatted += "%s{%s} %s" % (name, labels, value)
+        formatted += "%s{%s} %s\n" % (name, labels, value)
         LOG.debug("formatted metric:\n----\n%s\n----\n", formatted)
         return formatted
 
