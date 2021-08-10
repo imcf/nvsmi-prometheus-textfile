@@ -53,7 +53,16 @@ class NvMetric(object):
 
     @value.setter
     def value(self, new_value):
-        """Set the value associated with this metric, stripping surrounding whitespace.
+        """Set the value associated with this metric after processing it.
+
+        The setter will first strip surrounding whitespace from the new value. Then it
+        checks for specific contents and takes special action, e.g. in case the new
+        value is "[Not Supported]" (literally) it will NOT set the value (leaving it to
+        `None`) and set the metric's `enabled` attribute to `False`. Eventually, it will
+        split the new value on spaces and only keep the first segment (to remove
+        possible unit strings that are usually returned by `nvidia-smi`) unless the
+        `value_type` attribute is set to `str` (in which case it will literally keep the
+        entire string value).
 
         Parameters
         ----------
