@@ -86,9 +86,9 @@ class NvMetric(object):
         Returns
         -------
         int
-            The value multiplied by 1024
+            The value multiplied by 1024 * 1024
         """
-        return int(value) * 1024
+        return int(value) * 1024 * 1024
 
     @staticmethod
     def convert_percent(value):
