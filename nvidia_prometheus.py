@@ -8,6 +8,7 @@ from __future__ import print_function
 
 import subprocess
 import csv
+import copy
 
 
 class NvMetric(object):
@@ -146,8 +147,43 @@ class NvMetric(object):
         return '%s="%s"' % (self.prometheus_name, self.value)
 
 
+def process_gpu_metrics(values_from_csv):
+    """Process one line of (parsed) CSV output from an `nvidia-smi` query.
+
+    Parameters
+    ----------
+    values_from_csv : list(str)
+        A single line of the parsed CSV, obtained e.g. by a `csv.reader()` call.
+    """
+    # first we create a deep-copy of the metrics objects to be absolutely sure we don't
+    # have any leftovers from previous calls:
+    metrics = copy.deepcopy(METRICS)
+
+    # create a shorthand-dict with our metric objects so we can access them by name:
+    metrics_by_name = dict()
+    for metric in metrics:
+        metrics_by_name[metric.name] = metric
+
+    # create a list of Prometheus-style label names from the NVIDIA SMI property names:
+    label_list = ["%s" % metrics_by_name[name] for name in USE_AS_LABEL]
+    label_string = ", ".join(label_list)
+    # print(label_string)
+
+    # update the metric values from the given parsed CSV
+    for i, val in enumerate(values_from_csv):
+        metrics[i].value = val
+
+    for metric in metrics:
+        if metric.name in USE_AS_LABEL:
+            continue
+
+        promethified = metric.format_prometheus(label_string)
+        if promethified:
+            print(promethified)
+
+
 # the list of properties to query for using "nvidia-smi":
-metrics = [
+METRICS = [
     NvMetric("driver_version", "NVIDIA display driver version", "str"),
     NvMetric("gpu_serial", "the serial number physically printed on the board", "str"),
     # NvMetric("gpu_uuid", "globally unique immutable alphanumeric identifier", "str"),
@@ -189,7 +225,7 @@ metrics = [
 ]
 
 # a list of PROPERTIES that should be used as labels for all Prometheus metrics:
-use_as_label = [
+USE_AS_LABEL = [
     "gpu_serial",
     "gpu_name",
     "index",
@@ -199,13 +235,9 @@ use_as_label = [
     "pci.device_id",
 ]
 
-# create a dict with our metric objects so they are quickly accessible by their name:
-metrics_by_name = dict()
-for metric in metrics:
-    metrics_by_name[metric.name] = metric
 
 # create a list with the existing metric names:
-metrics_names = [x.name for x in metrics]
+metrics_names = [x.name for x in METRICS]
 
 smi_cmd = [
     "nvidia-smi",
@@ -227,22 +259,4 @@ for csv_line in reader:
     if not csv_line:
         continue
 
-    for i, val in enumerate(csv_line):
-        metrics[i].value = val
-
-    # for metric in metrics:
-    #     print("%s: %s" % (metric.name, metric.value))
-
-
-# create a list of Prometheus-style label names from the NVIDIA SMI property names:
-label_list = ["%s" % metrics_by_name[name] for name in use_as_label]
-label_string = ", ".join(label_list)
-# print(label_string)
-
-for metric in metrics:
-    if metric.name in use_as_label:
-        continue
-
-    promethified = metric.format_prometheus(label_string)
-    if promethified:
-        print(promethified)
+    process_gpu_metrics(csv_line)
