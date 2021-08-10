@@ -78,6 +78,18 @@ class NvMetric(object):
             return
         self._value = self._value.split(" ")[0]
 
+        if self._convert:
+            try:
+                self._value = self._convert(self._value)
+            except ValueError:
+                # in case conversion fails with a `ValueError` disable the metric:
+                LOG.info("Converting value '%s' failed, disabling metric", self._value)
+                self.disable()
+            except Exception as err:  # pylint: disable-msg=broad-except
+                LOG.error("Error converting value '%s': %s", self.value, err)
+                self.disable()
+
+
     @property
     def prometheus_name(self):
         """Return the name in a Prometheus compatible format.
@@ -138,16 +150,7 @@ class NvMetric(object):
         if not self.enabled:
             return ""
 
-        if self._convert:
-            try:
-                value = self._convert(self.value)
-            except ValueError:
-                # in case conversion fails with a `ValueError` we silently skip the
-                # entire metric for the output:
-                return ""
-            except Exception as err:  # pylint: disable-msg=broad-except
-                LOG.error("Error converting value '%s': %s", self.value, err)
-                return ""
+        value = self.value
 
         name = "nvsmi_" + self.prometheus_name + self.name_suffix
         if self.value_type == "str":
