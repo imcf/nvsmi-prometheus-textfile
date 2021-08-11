@@ -231,8 +231,12 @@ def process_gpu_metrics(values_from_csv):
     label_string = ", ".join(label_list)
     LOG.debug("label_string: %s", label_string)
 
-    LOG.info("processed %s metrics, assembling Prometheus output...", len(metrics))
     output = list()
+    LOG.info(
+        ">>> Processed %s metrics for GPU %s, assembling Prometheus output...",
+        len(metrics),
+        metrics_by_name["index"].value,
+    )
     for metric in metrics:
         if metric.name in USE_AS_LABEL:
             continue
