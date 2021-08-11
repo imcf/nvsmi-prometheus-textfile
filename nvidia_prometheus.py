@@ -373,13 +373,15 @@ class NvMetric(object):
         return '%s="%s"' % (self.prometheus_name, self.value)
 
 
-def process_gpu_metrics(values_from_csv):
+def process_gpu_metrics(values_from_csv, metric_collection):
     """Process one line of (parsed) CSV output from an `nvidia-smi` query.
 
     Parameters
     ----------
     values_from_csv : list(str)
         A single line of the parsed CSV, obtained e.g. by a `csv.reader()` call.
+    metric_collection : PromMetricCollection
+        The collection object where processed metrics should be added to.
     """
     LOG.info("*** processing GPU metrics ***")
     LOG.debug("values_from_csv: %s", values_from_csv)
@@ -402,7 +404,6 @@ def process_gpu_metrics(values_from_csv):
     label_string = ", ".join(label_list)
     LOG.debug("label_string: %s", label_string)
 
-    output = list()
     LOG.info(
         ">>> Processed %s metrics for GPU %s, assembling Prometheus output...",
         len(metrics),
@@ -412,11 +413,7 @@ def process_gpu_metrics(values_from_csv):
         if metric.name in USE_AS_LABEL:
             continue
 
-        promethified = metric.format_prometheus(label_string)
-        output.append(promethified)
-
-    LOG.debug("%s\n", "".join(output))
-    print("".join(output))
+        metric_collection.add(PromMetric.from_nv_metric(metric, label_string))
 
 
 # the list of properties to query for using "nvidia-smi":
@@ -490,10 +487,12 @@ LOG.debug("result from `nvidia-smi`:\n----\n%s\n----\n", stdout)
 header = stdout.pop(0)  # remove header but remember it (might be useful at some point)
 LOG.debug("header line:\n----\n%s\n----\n", header)
 
+collection = PromMetricCollection()
 reader = csv.reader(stdout, delimiter=",")
 for csv_line in reader:
-    # skip the line if its length is zero:
-    if not csv_line:
+    if not csv_line:  # skip the line if its length is zero:
         continue
 
-    process_gpu_metrics(csv_line)
+    process_gpu_metrics(csv_line, collection)
+
+print(collection)
