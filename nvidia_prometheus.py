@@ -119,7 +119,6 @@ class NvMetric(object):
                 LOG.error("Error converting value '%s': %s", self.value, err)
                 self.disable()
 
-
     @property
     def prometheus_name(self):
         """Return the name in a Prometheus compatible format.
