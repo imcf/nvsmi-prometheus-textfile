@@ -391,7 +391,7 @@ def process_gpu_metrics(values_from_csv, metric_collection):
 METRICS = [
     NvMetric("driver_version", "NVIDIA display driver version", "str"),
     NvMetric("gpu_serial", "the serial number physically printed on the board", "str"),
-    # NvMetric("gpu_uuid", "globally unique immutable alphanumeric identifier", "str"),
+    NvMetric("gpu_uuid", "globally unique immutable alphanumeric identifier", "str"),
     NvMetric("gpu_name", "official product name of the GPU", "str"),
     NvMetric("index", "zero-based index of the GPU, can change at each boot", "int"),
     NvMetric("utilization.gpu", "percent of time the GPU was busy", "pct"),
@@ -433,6 +433,7 @@ METRICS = [
 USE_AS_LABEL = [
     "gpu_serial",
     "gpu_name",
+    "gpu_uuid",
     "index",
     "pci.domain",
     "pci.bus",
