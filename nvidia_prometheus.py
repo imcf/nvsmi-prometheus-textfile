@@ -17,6 +17,178 @@ LOG.setLevel(logging.WARNING)
 # LOG.setLevel(logging.DEBUG)
 
 
+class PromMetricCollection(object):
+
+    """Wrapper class to store multiple Prometheus metrics of the same name.
+
+    This is used to ensure each Prometheus metric (even if it exists multiple times for
+    different labelsets) will only have one single '# HELP' and '# TYPE' line in the
+    formatted output - otherwise the `textfile_collector` refuses to parse it.
+
+    Metrics stored in this collection are accessible through the `metrics` dict using
+    the name of the metric as the key.
+
+    Attributes
+    ----------
+    metrics : dict(PromMetricMulti)
+        A dict containing `PromMetricMulti` objects, using their name as the dict's key.
+    """
+
+
+    def __init__(self):
+        """Initialize the collection object."""
+        self.metrics = dict()
+
+    def add(self, metric):
+        """Add a metric to the collection.
+
+        Parameters
+        ----------
+        metric : PromMetric
+            The Prometheus metric to be added to the collection.
+        """
+        if metric is None: # e.g. the metric is disabled, failed parsing, ...
+            return
+
+        if metric.name in self.metrics:
+            self.metrics[metric.name].add(metric)
+        else:
+            self.metrics[metric.name] = PromMetricMulti(metric)
+        LOG.debug("Added Prometheus metric to collection: [%s]", metric.name)
+
+
+    def __str__(self):
+        """Format the collection to be processed by Prometheus."""
+        output = list()
+        for name in self.metrics:
+            output.append("%s\n" % self.metrics[name].help)
+            output.append("%s\n" % self.metrics[name].type)
+            for nlv_string in self.metrics[name].nlv_strings:
+                output.append("%s\n" % nlv_string)
+        return "".join(output)
+
+
+class PromMetricMulti(object):
+
+    """Wrapper class to store multiple Prometheus metrics of the same name.
+
+    This is used to ensure each Prometheus metric (even if it exists multiple times for
+    different labelsets) will only have one single '# HELP' and '# TYPE' line in the
+    formatted output - otherwise the `textfile_collector` refuses to parse it.
+
+    Attributes
+    ----------
+    name : str
+        The metric's name.
+    help : str
+        The metric's complete '# HELP ...' line.
+    type : str
+        The metric's complete '# TYPE ...' line.
+    nlv_strings : list(str)
+        The list of name-labels-value (NLV) strings.
+    """
+
+    def __init__(self, prom_metric):
+        """Initialize the PromMetricMulti object.
+
+        Parameters
+        ----------
+        prom_metric : PromMetric
+            The `PromMetric` object (containing name, help, type and the actual labels
+            and value) that is used to initially populate the object.
+        """
+        self.name = prom_metric.name
+        self.help = prom_metric.help
+        self.type = prom_metric.type
+        self.nlv_strings = [prom_metric.nlv_string]
+
+    def add(self, prom_metric):
+        """Add an additional metric to the list.
+
+        NOTE: calling `add()` will NOT update the `name`, `help` or `type` attributes of
+        the object - the use case is that those HAVE to be identical!
+
+        Parameters
+        ----------
+        prom_metric : PromMetric
+            The `PromMetric` object whose NLV line will be added to the list of
+            `nlv_strings` of this object.
+
+        Raises
+        ------
+        ValueError
+            Raised in case the name of the provided `PromMetric` object doesn't match
+            the one from this object.
+        """
+        if not prom_metric.name == self.name:
+            raise ValueError(
+                "Metric names mismatch: '%s' vs. '%s'!" % (prom_metric.name, self.name)
+            )
+        self.nlv_strings.append(prom_metric.nlv_string)
+
+
+class PromMetric(object):
+
+    """Thin wrapper class for storing Prometheus metrics.
+
+    Attributes
+    ----------
+    name : str
+        The metric's name.
+    help : str
+        The metric's complete '# HELP ...' line.
+    type : str
+        The metric's complete '# TYPE ...' line.
+    nlv_string : str
+        The name-labels-value (NLV) string.
+    """
+
+    def __init__(self, name, help_string, type_string, nlv_string):
+        self.name = name
+        self.help = help_string
+        self.type = type_string
+        self.nlv_string = nlv_string
+
+    @classmethod
+    def from_nv_metric(cls, nv_metric, labels):
+        """Alternative constructor using an `NvMetrics` object and a label string.
+
+        Parameters
+        ----------
+        nv_metric : NvMetric
+            The `NvMetric` object to use for initializing the values of this
+            `PromMetric` object. In case the NvMetric object is disabled the method
+            will NOT initialize an object but return `None` instead!
+        labels : str
+            A string to be used in as labels for the Prometheus metric, e.g. something
+            like `gpu_name="Tesla M10", index="0", gpu_serial="123321"`.
+
+        Returns
+        -------
+        PromMetric or None
+            A Prometheus metric object, or `None` in case the `NvMetric` object passed
+            to the method was NOT enabled.
+        """
+        if not nv_metric.enabled:
+            return None
+
+        value = nv_metric.value
+
+        name = "nvsmi_" + nv_metric.prometheus_name + nv_metric.name_suffix
+        if nv_metric.value_type == "str":
+            labels += ', %s="%s"' % (nv_metric.name, value)
+            value = 1
+            name += "_info"
+
+        return cls(
+            name=name,
+            help_string="# HELP %s %s" % (name, nv_metric.description),
+            type_string="# TYPE %s gauge" % name,
+            nlv_string="%s{%s} %s" % (name, labels, value),
+        )
+
+
+
 class NvMetric(object):
 
     """Simple object for storing and accessing NVIDIA metrics, descriptions, etc.
