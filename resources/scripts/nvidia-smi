@@ -1,5 +1,7 @@
 #!/bin/sh
 
+echo 'driver_version, serial, name, index, utilization.gpu [%], utilization.memory [%], memory.total [MiB], memory.free [MiB], memory.used [MiB], temperature.gpu, fan.speed [%], power.draw [W], power.limit [W], pci.domain, pci.bus, pci.device, pci.device_id, pcie.link.gen.current, pcie.link.gen.max, pcie.link.width.current, pcie.link.width.max'
+echo
 echo '430.67, 1234567891234, Tesla M10, 0, 0 %, 0 %, 8191 MiB, 49 MiB, 8142 MiB, 36, [Not Supported], 10.58 W, 53.00 W, 0x0000, 0x83, 0x00, 0xC0FFEEEE, 1, 3, 8, 16'
 echo '430.67, 1234567891234, Tesla M10, 1, 0 %, 0 %, 8191 MiB, 49 MiB, 8142 MiB, 38, [Not Supported], 10.78 W, 53.00 W, 0x0000, 0x84, 0x00, 0xC0FFEEEE, 1, 3, 8, 16'
 echo '430.67, 1234567891234, Tesla M10, 2, 18 %, 4 %, 8191 MiB, 49 MiB, 8142 MiB, 32, [Not Supported], 10.68 W, 53.00 W, 0x0000, 0x85, 0x00, 0xC0FFEEEE, 1, 3, 8, 16'
