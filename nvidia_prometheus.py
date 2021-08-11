@@ -19,9 +19,39 @@ LOG.setLevel(logging.WARNING)
 
 class NvMetric(object):
 
-    """Simple object for storing and accessing NVIDIA metrics, descriptions, etc."""
+    """Simple object for storing and accessing NVIDIA metrics, descriptions, etc.
+
+    Attributes
+    ----------
+    name : str
+        The metric's name.
+    name_suffix : str
+        The metric's suffix string, usually derived from the `value_type` attribute. See
+        https://prometheus.io/docs/practices/naming/ for details.
+    description : str
+        The metric's description, as provided by `nvidia-smi --help-query-gpu` (or
+        slightly modified). Will be used in the '# HELP ' section of the Prometheus
+        formatted output.
+    value_type : str
+        The metric's value type. Will be used to derive a conversion method (if
+        applicable) and the appropriate `name_suffix` string.
+    enabled : bool
+        Flag to disable this metric. Changes the behavior of the `value` getter method
+        and the `format_prometheus` method.
+    """
 
     def __init__(self, metric_name, description, value_type):
+        """Initialize the NvMetric instance.
+
+        Parameters
+        ----------
+        metric_name : str
+            See the class attributes for details.
+        description : str
+            See the class attributes for details.
+        value_type : str
+            See the class attributes for details.
+        """
         self.name = metric_name
         self.name_suffix = ""
         self.description = description
