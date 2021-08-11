@@ -335,35 +335,6 @@ class NvMetric(object):
         ratio = float(value) / 100.0
         return ratio
 
-    def format_prometheus(self, labels):
-        """Format the metric in Prometheus style, adding labels as provided.
-
-        Parameters
-        ----------
-        labels : str
-            A string that should be added as labels.
-
-        Returns
-        -------
-        str
-            The metric formatted for Prometheus.
-        """
-        if not self.enabled:
-            return ""
-
-        value = self.value
-
-        name = "nvsmi_" + self.prometheus_name + self.name_suffix
-        if self.value_type == "str":
-            labels += ', %s="%s"' % (self.name, value)
-            value = 1
-            name += "_info"
-        formatted = "# HELP %s %s\n" % (name, self.description)
-        formatted += "# TYPE %s gauge\n" % name
-        formatted += "%s{%s} %s\n" % (name, labels, value)
-        LOG.debug("formatted metric:\n----\n%s\n----\n", formatted)
-        return formatted
-
     def disable(self):
         """Set this metric's status to 'disabled'."""
         LOG.info("Disabling metric '%s'...", self.name)
