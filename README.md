@@ -58,9 +58,16 @@ done
 Well, that's what is available on the Citrix Hypervisor default installation that we're
 running. Let's re-evaluate the situation with the next version.
 
+## Metric and Label Naming
+
+See the official Prometheus instructions on [writing exporters][7] and [metric and
+label naming][8] for more information.
+
 [1]: https://developer.nvidia.com/nvidia-system-management-interface
 [2]: https://prometheus.io/
 [3]: https://github.com/prometheus/node_exporter
 [4]: https://xenproject.org/
 [5]: https://docs.citrix.com/en-us/citrix-hypervisor.html
 [6]: https://centos.org/
+[7]: https://prometheus.io/docs/instrumenting/writing_exporters/
+[8]: https://prometheus.io/docs/practices/naming/
