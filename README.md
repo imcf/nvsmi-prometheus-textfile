@@ -1,6 +1,6 @@
 # Prometheus textfile collector for `nvidia-smi`
 
-![Python: 2.7](https://img.shields.io/badge/python-2.7-yellow) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+![Python: 2.7](https://img.shields.io/badge/python-2.7-yellow) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) ![License: GPL](https://img.shields.io/badge/license-GPL-blue)
 
 This is a zero-dependencies (see below for details) standalone tool collecting metrics
 using the [`nvidia-smi`][1] (NVIDIA System Management Interface) command and formatting
