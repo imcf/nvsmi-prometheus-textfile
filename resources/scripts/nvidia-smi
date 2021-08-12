@@ -1,5 +1,14 @@
 #!/bin/sh
 
+# this is a mocking script for the `nvidia-smi` command, intended for testing in an
+# interactive shell session - simply add the script's location to your PATH environment
+# variable temporarily, e.g. by running this command:
+#
+# $ export PATH="resources/scripts:$PATH"
+#
+# then you can run the `nvidia_prometheus.py` tool from the base directory of your
+# repo clone and it will use the script instead of the actual `nvidia-smi` command
+
 echo 'driver_version, serial, uuid, name, index, utilization.gpu [%], utilization.memory [%], memory.total [MiB], memory.free [MiB], memory.used [MiB], temperature.gpu, fan.speed [%], power.draw [W], power.limit [W], pci.domain, pci.bus, pci.device, pci.device_id, pcie.link.gen.current, pcie.link.gen.max, pcie.link.width.current, pcie.link.width.max'
 echo
 echo '430.67, 1234567891234, GPU-60c-73-d2-85-67bb, Tesla M10, 0, 0 %, 0 %, 8191 MiB, 49 MiB, 8142 MiB, 36, [Not Supported], 10.58 W, 53.00 W, 0x0000, 0x83, 0x00, 0xC0FFEEEE, 1, 3, 8, 16'
