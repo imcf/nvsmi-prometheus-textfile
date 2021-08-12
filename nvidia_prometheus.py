@@ -34,7 +34,6 @@ class PromMetricCollection(object):
         A dict containing `PromMetricMulti` objects, using their name as the dict's key.
     """
 
-
     def __init__(self):
         """Initialize the collection object."""
         self.metrics = dict()
@@ -47,7 +46,7 @@ class PromMetricCollection(object):
         metric : PromMetric
             The Prometheus metric to be added to the collection.
         """
-        if metric is None: # e.g. the metric is disabled, failed parsing, ...
+        if metric is None:  # e.g. the metric is disabled, failed parsing, ...
             return
 
         if metric.name in self.metrics:
@@ -55,7 +54,6 @@ class PromMetricCollection(object):
         else:
             self.metrics[metric.name] = PromMetricMulti(metric)
         LOG.debug("Added Prometheus metric to collection: [%s]", metric.name)
-
 
     def __str__(self):
         """Format the collection to be processed by Prometheus."""
@@ -186,7 +184,6 @@ class PromMetric(object):
             type_string="# TYPE %s gauge" % name,
             nlv_string="%s{%s} %s" % (name, labels, value),
         )
-
 
 
 class NvMetric(object):
