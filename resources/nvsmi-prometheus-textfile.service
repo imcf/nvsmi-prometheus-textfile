@@ -1,0 +1,12 @@
+[Unit]
+Description=Prometheus textfile collector for NVIDIA metrics
+Documentation=https://github.com/imcf/nvsmi-prometheus-textfile
+
+[Service]
+Restart=always
+User=node_exporter
+Environment=TEXTFILE_DIR=/var/lib/node_exporter/textfile_collector
+ExecStart=/opt/nvsmi-prometheus-textfile/nvidia_prometheus.py
+
+[Install]
+WantedBy=multi-user.target

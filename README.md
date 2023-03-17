@@ -54,16 +54,14 @@ chown -R node_exporter:node_exporter /var/lib/node_exporter
 ## Running
 
 Assuming you have cloned this repo to `/opt/nvsmi-prometheus-textfile/` and followed the
-strategy for the user account outlined above, you could run the script to collect
-metrics e.g. once a minute like so:
+strategy for the user account outlined above, you can simply use the *service* file
+provided in the `resources` directory to run metrics collection via *systemd*:
 
 ```bash
-su - node_exporter
-OUTFILE="/var/lib/node_exporter/textfile_collector/nvsmi.prom"
-while true ; do
-    /opt/nvsmi-prometheus-textfile/nvidia_prometheus.py > $OUTFILE
-    sleep 60
-done
+cd /opt/nvsmi-prometheus-textfile/
+cp -v resources/nvsmi-prometheus-textfile.service /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable --now nvsmi-prometheus-textfile.service
 ```
 
 ## Seriously, Python 2.7? In 2021??
