@@ -16,6 +16,8 @@ from os import environ, path
 # seconds to wait between subsequent metric collection runs:
 SLEEP_TIME = int(environ.get("SLEEP_TIME", 60))
 
+TEXTFILE_DIR = environ.get("TEXTFILE_DIR")
+
 LOG = logging.getLogger()
 LOG.addHandler(logging.StreamHandler())
 LOG.setLevel(logging.WARNING)
@@ -473,6 +475,13 @@ while True:
 
         process_gpu_metrics(csv_line, collection)
 
-    print(collection)
+    if TEXTFILE_DIR:
+        output_filename = path.join(TEXTFILE_DIR, "nvsmi.prom")
+        with open(output_filename, "w") as outfile:
+            outfile.write(str(collection))
+        LOG.debug("Wrote metrics to [%s].", output_filename)
+    else:
+        print(collection)
+
     LOG.debug("Sleeping for %s seconds...", SLEEP_TIME)
     time.sleep(SLEEP_TIME)
