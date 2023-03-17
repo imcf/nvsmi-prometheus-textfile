@@ -10,6 +10,9 @@ import copy
 import csv
 import logging
 import subprocess
+import time
+
+SLEEP_TIME = 60  # seconds to wait between subsequent metric collection runs
 
 LOG = logging.getLogger()
 LOG.addHandler(logging.StreamHandler())
@@ -449,19 +452,25 @@ smi_cmd = [
 ]
 LOG.info("call to `nvidia-smi`: <%s>", " ".join(smi_cmd))
 
-proc = subprocess.Popen(smi_cmd, stdout=subprocess.PIPE)
-stdout = proc.communicate()[0].split("\n")
-LOG.debug("result from `nvidia-smi`:\n----\n%s\n----\n", stdout)
 
-header = stdout.pop(0)  # remove header but remember it (might be useful at some point)
-LOG.debug("header line:\n----\n%s\n----\n", header)
+while True:
+    proc = subprocess.Popen(smi_cmd, stdout=subprocess.PIPE)
+    stdout = proc.communicate()[0].split("\n")
+    LOG.debug("result from `nvidia-smi`:\n----\n%s\n----\n", stdout)
 
-collection = PromMetricCollection()
-reader = csv.reader(stdout, delimiter=",")
-for csv_line in reader:
-    if not csv_line:  # skip the line if its length is zero:
-        continue
+    header = stdout.pop(
+        0
+    )  # remove header but remember it (might be useful at some point)
+    LOG.debug("header line:\n----\n%s\n----\n", header)
 
-    process_gpu_metrics(csv_line, collection)
+    collection = PromMetricCollection()
+    reader = csv.reader(stdout, delimiter=",")
+    for csv_line in reader:
+        if not csv_line:  # skip the line if its length is zero:
+            continue
 
-print(collection)
+        process_gpu_metrics(csv_line, collection)
+
+    print(collection)
+    LOG.debug("Sleeping for %s seconds...", SLEEP_TIME)
+    time.sleep(SLEEP_TIME)
