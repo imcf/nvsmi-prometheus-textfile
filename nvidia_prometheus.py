@@ -11,8 +11,10 @@ import csv
 import logging
 import subprocess
 import time
+from os import environ, path
 
-SLEEP_TIME = 60  # seconds to wait between subsequent metric collection runs
+# seconds to wait between subsequent metric collection runs:
+SLEEP_TIME = int(environ.get("SLEEP_TIME", 60))
 
 LOG = logging.getLogger()
 LOG.addHandler(logging.StreamHandler())
