@@ -51,15 +51,17 @@ mkdir -pv /var/lib/node_exporter/textfile_collector
 chown -R node_exporter:node_exporter /var/lib/node_exporter
 ```
 
-## Running
+## Installation
 
-Assuming you have cloned this repo to `/opt/nvsmi-prometheus-textfile/` and followed the
-strategy for the user account outlined above, you can simply use the *service* file
+Assuming you have followed the strategy for the user account outlined above, you can
+simply clone this repo to `/opt/nvsmi-prometheus-textfile/` and use the *service* file
 provided in the `resources` directory to run metrics collection via *systemd*:
 
 ```bash
-cd /opt/nvsmi-prometheus-textfile/
-cp -v resources/nvsmi-prometheus-textfile.service /etc/systemd/system/
+cd /opt/
+git clone https://github.com/imcf/nvsmi-prometheus-textfile
+cd nvsmi-prometheus-textfile/resources
+cp -v nvsmi-prometheus-textfile.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable --now nvsmi-prometheus-textfile.service
 ```
