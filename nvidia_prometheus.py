@@ -6,10 +6,10 @@
 
 from __future__ import print_function
 
-import subprocess
-import csv
 import copy
+import csv
 import logging
+import subprocess
 
 LOG = logging.getLogger()
 LOG.addHandler(logging.StreamHandler())
